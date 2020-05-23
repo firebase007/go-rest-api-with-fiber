@@ -90,7 +90,7 @@ func GetSingleProduct(c *fiber.Ctx) {
 		case nil:
   			log.Println(product.Name, product.Description, product.Category, product.Amount)
 		default:
-			  panic(err)
+			//   panic(err)
 			  c.Status(500).JSON(&fiber.Map{
 				"success": false,
 				"message": err,
