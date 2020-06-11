@@ -20,7 +20,7 @@ func Connect() error {
 
 	p := config.Config("DB_PORT")
 
-	// because our config function returns a string, we are parsing our str to int here 
+	// because our config function returns a string, we are parsing our str to int here - hack ??
 	port,err := strconv.ParseUint(p, 10, 32) 
 
 	if err != nil {

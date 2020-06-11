@@ -8,14 +8,13 @@ import (
 
 	"github.com/gofiber/fiber"
 
-	"github.com/gofiber/logger"
 )
 
 // SetupRoutes func
 func SetupRoutes (app *fiber.App) {
 	
 	// Middleware
-	api := app.Group("/api", logger.New(), middleware.AuthReq())  
+	api := app.Group("/api", middleware.AuthReq())  
 	
 	// routes
 	api.Get("/", handler.GetAllProducts)

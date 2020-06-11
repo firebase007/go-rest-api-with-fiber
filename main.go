@@ -10,6 +10,8 @@ import (
 
 "github.com/firebase007/go-rest-api-with-fiber/router"
 
+"github.com/gofiber/fiber/middleware"
+
 
 _ "github.com/lib/pq"
 
@@ -24,6 +26,8 @@ if err := database.Connect(); err != nil {
 }
 
 app := fiber.New()  // call the New() method - used to instantiate a new Fiber App
+
+app.Use(middleware.Logger())
 
 router.SetupRoutes(app)
 
