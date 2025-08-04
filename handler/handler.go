@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"log"
 	"database/sql"
+	"log"
 
 	"github.com/gofiber/fiber"
 
@@ -10,7 +10,6 @@ import (
 
 	"github.com/firebase007/go-rest-api-with-fiber/database"
 )
-
 
 // GetAllProducts from db
 func GetAllProducts(c *fiber.Ctx) {
@@ -20,8 +19,8 @@ func GetAllProducts(c *fiber.Ctx) {
 	if err != nil {
 		c.Status(500).JSON(&fiber.Map{
 			"success": false,
-			"error": err,
-		  })
+			"error":   err,
+		})
 		return
 	}
 
@@ -36,8 +35,8 @@ func GetAllProducts(c *fiber.Ctx) {
 		if err != nil {
 			c.Status(500).JSON(&fiber.Map{
 				"success": false,
-				"error": err,
-			  })
+				"error":   err,
+			})
 			return
 		}
 
@@ -48,17 +47,16 @@ func GetAllProducts(c *fiber.Ctx) {
 	// Return Products in JSON format
 	if err := c.JSON(&fiber.Map{
 		"success": true,
-		"product":  result,
+		"product": result,
 		"message": "All product returned successfully",
-	  }); err != nil {
+	}); err != nil {
 		c.Status(500).JSON(&fiber.Map{
 			"success": false,
 			"message": err,
-		  })
+		})
 		return
 	}
 }
-
 
 // GetSingleProduct from db
 func GetSingleProduct(c *fiber.Ctx) {
@@ -72,7 +70,7 @@ func GetSingleProduct(c *fiber.Ctx) {
 		c.Status(500).JSON(&fiber.Map{
 			"success": false,
 			"message": err,
-		  })
+		})
 		return
 	}
 
@@ -80,39 +78,38 @@ func GetSingleProduct(c *fiber.Ctx) {
 
 	// iterate through the values of the row
 	for row.Next() {
-	switch err := row.Scan(&id, &product.Amount, &product.Name, &product.Description, &product.Category ); err {
+		switch err := row.Scan(&id, &product.Amount, &product.Name, &product.Description, &product.Category); err {
 		case sql.ErrNoRows:
-			  log.Println("No rows were returned!")
-			  c.Status(500).JSON(&fiber.Map{
+			log.Println("No rows were returned!")
+			c.Status(500).JSON(&fiber.Map{
 				"success": false,
 				"message": err,
-			  })
+			})
 		case nil:
-  			log.Println(product.Name, product.Description, product.Category, product.Amount)
+			log.Println(product.Name, product.Description, product.Category, product.Amount)
 		default:
 			//   panic(err)
-			  c.Status(500).JSON(&fiber.Map{
+			c.Status(500).JSON(&fiber.Map{
 				"success": false,
 				"message": err,
-			  })
+			})
+		}
+
 	}
 
-}
-	
 	// return product in JSON format
 	if err := c.JSON(&fiber.Map{
 		"success": false,
 		"message": "Successfully fetched product",
 		"product": product,
-	  }); err != nil {
+	}); err != nil {
 		c.Status(500).JSON(&fiber.Map{
 			"success": false,
-			"message":  err,
-		  })
+			"message": err,
+		})
 		return
 	}
 
-	
 }
 
 // CreateProduct handler
@@ -127,64 +124,104 @@ func CreateProduct(c *fiber.Ctx) {
 		c.Status(400).JSON(&fiber.Map{
 			"success": false,
 			"message": err,
-		  })
+		})
 		return
 	}
 
 	// Insert Product into database
-	res, err := database.DB.Query("INSERT INTO products (name, description, category, amount) VALUES ($1, $2, $3, $4)" , p.Name, p.Description, p.Category, p.Amount )
+	res, err := database.DB.Query("INSERT INTO products (name, description, category, amount) VALUES ($1, $2, $3, $4)", p.Name, p.Description, p.Category, p.Amount)
 	if err != nil {
 		c.Status(500).JSON(&fiber.Map{
 			"success": false,
 			"message": err,
-		  })
+		})
 		return
 	}
 	// Print result
 	log.Println(res)
-	
+
 	// Return Product in JSON format
 	if err := c.JSON(&fiber.Map{
 		"success": true,
 		"message": "Product successfully created",
 		"product": p,
-	  }); err != nil {
+	}); err != nil {
 		c.Status(500).JSON(&fiber.Map{
 			"success": false,
-			"message":  "Error creating product",
-		  })
+			"message": "Error creating product",
+		})
 		return
 	}
 }
 
-
-// DeleteProduct from db 
+// DeleteProduct from db
 func DeleteProduct(c *fiber.Ctx) {
 
-		id := c.Params("id")
+	id := c.Params("id")
 
-		// query product table in database
-		res, err := database.DB.Query("DELETE FROM products WHERE id = $1", id)
-		if err != nil {
-			c.Status(500).JSON(&fiber.Map{
-				"success": false,
-				"error": err,
-			  })
-			return
-		}
+	// query product table in database
+	res, err := database.DB.Query("DELETE FROM products WHERE id = $1", id)
+	if err != nil {
+		c.Status(500).JSON(&fiber.Map{
+			"success": false,
+			"error":   err,
+		})
+		return
+	}
 
-		// Print result
-		log.Println(res)
+	// Print result
+	log.Println(res)
 
-		// return product in JSON format
-		if err := c.JSON(&fiber.Map{
-			"success": true,
-			"message": "product deleted successfully",
-		  }); err != nil {
-			c.Status(500).JSON(&fiber.Map{
-				"success": false,
-				"error": err,
-			  })
-			return
-		}
+	// return product in JSON format
+	if err := c.JSON(&fiber.Map{
+		"success": true,
+		"message": "product deleted successfully",
+	}); err != nil {
+		c.Status(500).JSON(&fiber.Map{
+			"success": false,
+			"error":   err,
+		})
+		return
+	}
+}
+
+// UpdateProduct handler
+func UpdateProduct(c *fiber.Ctx) {
+
+	id := c.Params("id")
+	p := new(model.Product)
+
+	// Parse the request body into the product struct
+	if err := c.BodyParser(p); err != nil {
+		log.Println(err)
+		c.Status(400).JSON(&fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Update the product in the database
+	res, err := database.DB.Query("UPDATE products SET name = $1, description = $2, category = $3, amount = $4 WHERE id = $5", p.Name, p.Description, p.Category, p.Amount, id)
+	if err != nil {
+		log.Println(err)
+		c.Status(500).JSON(&fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+	log.Println(res)
+
+	// Return success response
+	if err := c.JSON(&fiber.Map{
+		"success": true,
+		"message": "Product successfully updated",
+		"product": p,
+	}); err != nil {
+		c.Status(500).JSON(&fiber.Map{
+			"success": false,
+			"message": "Failed to return updated product",
+		})
+	}
 }
